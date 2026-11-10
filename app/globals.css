@@ -1,0 +1,99 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%; /* Pure white #ffffff */
+    --foreground: 0 0% 7%; /* High contrast dark text #121212 */
+    --card: 0 0% 100%; /* Pure white surface */
+    --card-foreground: 0 0% 7%;
+    --primary: 38 92% 50%; /* Solar Amber #F59E0B */
+    --primary-foreground: 0 0% 0%; /* Crisp contrast black on amber */
+    --secondary: 0 0% 96%; /* Clean light surface #f5f5f5 */
+    --secondary-foreground: 0 0% 10%;
+    --muted: 0 0% 96%;
+    --muted-foreground: 0 0% 42%;
+    --accent: 0 0% 94%;
+    --accent-foreground: 0 0% 10%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 89%; /* Crisp light border #e3e3e3 */
+    --input: 0 0% 89%;
+    --ring: 38 92% 50%;
+    --radius: 0.75rem;
+    --code-bg: 0 0% 97%;
+  }
+
+  .dark {
+    --background: 0 0% 0%; /* Pure pitch black #000000 */
+    --foreground: 0 0% 100%; /* Pure white text #ffffff */
+    --card: 0 0% 3%; /* Ultra deep black card #080808 */
+    --card-foreground: 0 0% 100%;
+    --primary: 38 92% 50%; /* Solar Amber #F59E0B */
+    --primary-foreground: 0 0% 0%; /* Crisp dark text on glowing amber */
+    --secondary: 0 0% 8%; /* Clean dark surface #141414 */
+    --secondary-foreground: 0 0% 100%;
+    --muted: 0 0% 8%;
+    --muted-foreground: 0 0% 65%;
+    --accent: 0 0% 10%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 62.8% 50.6%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 0 0% 14%; /* Crisp dark border #242424 */
+    --input: 0 0% 14%;
+    --ring: 38 92% 50%;
+    --code-bg: 0 0% 1%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  html,
+  body {
+    height: 100%;
+  }
+  body {
+    @apply bg-background text-foreground antialiased;
+    overscroll-behavior: none;
+  }
+}
+
+@layer utilities {
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--border)) transparent;
+  }
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background: hsl(var(--border));
+    border-radius: 9999px;
+  }
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .glass {
+    background: color-mix(in srgb, hsl(var(--card)) 70%, transparent);
+    backdrop-filter: blur(14px);
+  }
+  .glow {
+    box-shadow: 0 0 0 1px hsl(var(--primary) / 0.35), 0 8px 28px -8px hsl(var(--primary) / 0.55);
+  }
+  .bg-grid {
+    background-image: linear-gradient(to right, hsl(var(--border) / 0.35) 1px, transparent 1px),
+      linear-gradient(to bottom, hsl(var(--border) / 0.35) 1px, transparent 1px);
+    background-size: 44px 44px;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}

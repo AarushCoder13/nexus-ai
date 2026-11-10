@@ -1,0 +1,19 @@
+# dependencies
+/node_modules
+
+# next.js build output
+/.next
+/out
+tsconfig.tsbuildinfo
+
+# local published projects + publish secret (never commit)
+/data
+
+# misc
+.DS_Store
+*.log
+.env
+.env*.local
+
+# test helpers
+/scripts/*.mjs
