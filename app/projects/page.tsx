@@ -13,6 +13,15 @@ export default function ProjectsPage() {
   const projects = useStore((s) => s.projects);
   const createChat = useStore((s) => s.createChat);
 
+  const userProfile = useStore((s) => s.userProfile);
+  const isHydrated = useStore((s) => s.isHydrated);
+
+  useEffect(() => {
+    if (isHydrated && !userProfile?.onboarded) {
+      window.location.href = "/login";
+    }
+  }, [isHydrated, userProfile?.onboarded]);
+
   const [published, setPublished] = useState<PublishedRef[]>([]);
   useEffect(() => {
     fetch("/api/projects")

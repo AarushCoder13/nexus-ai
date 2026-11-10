@@ -390,7 +390,7 @@ export const useStore = create<NexusState>()(
         profession: "Full-Stack Engineer",
         workspaceType: "solo",
         companyName: "",
-        onboarded: true,
+        onboarded: false,
       },
       keys: {},
       connections: {},
@@ -442,8 +442,16 @@ export const useStore = create<NexusState>()(
       isHydrated: false,
 
       setTheme: (t) => set({ theme: t }),
-      setUserProfile: (profile) =>
-        set((s) => ({ userProfile: { ...s.userProfile, ...profile } })),
+      setUserProfile: (profile) => {
+        if (typeof document !== "undefined" && typeof profile.onboarded === "boolean") {
+          if (profile.onboarded) {
+            document.cookie = "nexus_auth=1; path=/; max-age=31536000; SameSite=Lax";
+          } else {
+            document.cookie = "nexus_auth=; path=/; max-age=0; SameSite=Lax";
+          }
+        }
+        set((s) => ({ userProfile: { ...s.userProfile, ...profile } }));
+      },
       setKey: (provider, value) => set((s) => ({ keys: { ...s.keys, [provider]: value } })),
       setConnection: (service, token) => set((s) => ({ connections: { ...s.connections, [service]: token } })),
       connectAccount: (provider, data) => {
@@ -1072,6 +1080,16 @@ export const useStore = create<NexusState>()(
               isHydrated: true,
             });
           }
+
+          if (typeof document !== "undefined") {
+            const hasAuthCookie = document.cookie.includes("nexus_auth=1");
+            if (!hasAuthCookie) {
+              useStore.setState((prev) => ({
+                userProfile: { ...prev.userProfile, onboarded: false },
+              }));
+            }
+          }
+
           // Request browser storage persistence so the browser won't evict data
           void requestPersistentStorage();
         }

@@ -1,16 +1,59 @@
 "use client";
 
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import { useStore } from "@/lib/store";
 import { Sidebar } from "@/components/sidebar";
 import { ChatArea } from "@/components/chat";
 import { Workspace } from "@/components/workspace";
+import { Loader2 } from "lucide-react";
 
 export default function Home() {
+  const router = useRouter();
+  const isHydrated = useStore((s) => s.isHydrated);
+  const userProfile = useStore((s) => s.userProfile);
   const leftOpen = useStore((s) => s.leftOpen);
   const rightOpen = useStore((s) => s.rightOpen);
   const drawer = useStore((s) => s.drawer);
   const setDrawer = useStore((s) => s.setDrawer);
+
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (mounted && isHydrated) {
+      if (!userProfile?.onboarded) {
+        router.replace("/login");
+      }
+    }
+  }, [mounted, isHydrated, userProfile?.onboarded, router]);
+
+  // While store is hydrating or checking auth, show sleek cyber loader
+  if (!mounted || !isHydrated || !userProfile?.onboarded) {
+    return (
+      <div className="flex h-screen w-full flex-col items-center justify-center bg-[#07070a] text-zinc-100 select-none">
+        <div className="relative flex flex-col items-center">
+          <div className="relative mb-5 flex h-16 w-16 items-center justify-center rounded-2xl border border-amber-500/30 bg-zinc-900 p-2 shadow-2xl shadow-amber-500/10">
+            <img
+              src="/nexus-logo.png"
+              alt="Nexus AI"
+              className="h-full w-full object-contain drop-shadow-[0_0_15px_rgba(245,158,11,0.6)] animate-pulse"
+            />
+          </div>
+          <div className="flex items-center gap-2">
+            <Loader2 className="h-4 w-4 animate-spin text-amber-500" />
+            <span className="text-xs font-semibold tracking-wide text-zinc-400">
+              Initializing Nexus AI...
+            </span>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-screen w-full overflow-hidden bg-black p-2 sm:p-2.5 gap-2 sm:gap-2.5 text-foreground select-none supports-[height:100dvh]:h-dvh">

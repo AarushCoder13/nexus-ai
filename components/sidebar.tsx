@@ -93,6 +93,9 @@ export function Sidebar() {
   const [showChats, setShowChats] = useState(false);
 
   const handleLogout = () => {
+    if (typeof document !== "undefined") {
+      document.cookie = "nexus_auth=; path=/; max-age=0; SameSite=Lax";
+    }
     useStore.getState().setUserProfile({ onboarded: false });
     toast.success("Logged out successfully");
     setTimeout(() => {

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import {
   ArrowLeft,
@@ -64,6 +64,14 @@ export default function SettingsPage() {
   const setPublishSecret = useStore((s) => s.setPublishSecret);
 
   const [tab, setTab] = useState<Tab>("connectors");
+  const isHydrated = useStore((s) => s.isHydrated);
+
+  useEffect(() => {
+    if (isHydrated && !userProfile?.onboarded) {
+      window.location.href = "/login";
+    }
+  }, [isHydrated, userProfile?.onboarded]);
+
   const [name, setName] = useState(userProfile?.name || "Aarush");
   const [email, setEmail] = useState(userProfile?.email || "aarush@nexus.ai");
   const [profession, setProfession] = useState(userProfile?.profession || "Software Engineer");
@@ -128,6 +136,9 @@ export default function SettingsPage() {
   });
 
   const handleLogout = () => {
+    if (typeof document !== "undefined") {
+      document.cookie = "nexus_auth=; path=/; max-age=0; SameSite=Lax";
+    }
     setUserProfile({ onboarded: false });
     toast.success("Logged out successfully");
     setTimeout(() => {

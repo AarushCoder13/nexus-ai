@@ -12,6 +12,27 @@ export function middleware(req: NextRequest) {
     const url = new URL(`/p/${encodeURIComponent(slug)}`, req.url);
     return NextResponse.rewrite(url);
   }
+
+  const { pathname } = req.nextUrl;
+
+  // Allow static assets, API routes, public preview pages, and the login page
+  if (
+    pathname.startsWith("/api") ||
+    pathname.startsWith("/p/") ||
+    pathname.startsWith("/_next") ||
+    pathname === "/login" ||
+    pathname.includes(".")
+  ) {
+    return NextResponse.next();
+  }
+
+  // Check auth cookie for protected workspace pages (/, /settings, /projects)
+  const isAuth = req.cookies.get("nexus_auth")?.value;
+  if (!isAuth) {
+    const loginUrl = new URL("/login", req.url);
+    return NextResponse.redirect(loginUrl);
+  }
+
   return NextResponse.next();
 }
 

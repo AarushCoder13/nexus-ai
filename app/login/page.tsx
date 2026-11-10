@@ -161,6 +161,9 @@ export default function LoginPage() {
   const handleInstantDemoLogin = () => {
     setLoadingDemo(true);
     toast.success("Guest Access Activated! Opening Nexus AI workspace...");
+    if (typeof document !== "undefined") {
+      document.cookie = "nexus_auth=1; path=/; max-age=31536000; SameSite=Lax";
+    }
     setUserProfile({
       name: "Aarush",
       email: "guest@nexus.ai",
@@ -182,6 +185,9 @@ export default function LoginPage() {
 
     if (mode === "signin") {
       toast.success(`Welcome back, ${email.split("@")[0]}!`);
+      if (typeof document !== "undefined") {
+        document.cookie = "nexus_auth=1; path=/; max-age=31536000; SameSite=Lax";
+      }
       setUserProfile({
         name: email.split("@")[0],
         email: email.trim(),
@@ -221,6 +227,10 @@ export default function LoginPage() {
       toast.success("API Keys safely saved to encrypted browser storage!");
     } else {
       toast.info("Starting in Demo Mode. You can add API keys anytime in Settings.");
+    }
+
+    if (typeof document !== "undefined") {
+      document.cookie = "nexus_auth=1; path=/; max-age=31536000; SameSite=Lax";
     }
 
     setUserProfile({
