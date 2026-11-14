@@ -164,80 +164,19 @@ function seedChats(): Chat[] {
   ];
 }
 
-const demoProject: GeneratedProject = {
-  name: "Portfolio Website",
-  framework: "Static HTML",
-  files: [
-    {
-      path: "app/index.html",
-      language: "html",
-      content: `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Alex Rivera — Portfolio</title><style>
-:root{--accent:#f59e0b;--bg:#09090c;--panel:#121217;--text:#e7eaf0;--muted:#9aa3b2;--border:#232838;--radius:16px}
-*{margin:0;padding:0;box-sizing:border-box}
-body{font-family:Inter,system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.6}
-.container{max-width:1140px;margin:0 auto;padding:0 24px}
-.hero{min-height:92vh;display:flex;align-items:center} 
-.hero::before{content:"";position:absolute;inset:0;background:radial-gradient(700px 400px at 80% 20%,color-mix(in srgb,var(--accent) 18%,transparent),transparent 70%)}
-.hero h1{font-size:clamp(38px,6vw,60px);font-weight:800;margin:16px 0}
-.btn{display:inline-flex;padding:12px 22px;border-radius:999px;font-weight:600;cursor:pointer}
-.btn-primary{background:linear-gradient(135deg,#f59e0b,#f97316);color:#000;border:none;font-weight:700}
-.work{padding:90px 0;border-top:1px solid var(--border)}
-.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
-.card{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:26px}
-@media (max-width:900px){.grid{grid-template-columns:1fr}}
-</style></head><body>
-<section class="hero"><div class="container"><div style="color:var(--accent);font-weight:600;letter-spacing:.12em;font-size:12px">AVAILABLE FOR WORK</div>
-<h1>Designing & building <span style="color:var(--accent)">delightful</span> web experiences.</h1>
-<p style="color:var(--muted);font-size:19px;max-width:560px">I'm Alex, a product-focused full-stack developer turning complex problems into clean, fast interfaces.</p>
-<div style="margin-top:28px;display:flex;gap:12px"><button class="btn btn-primary">See my work</button></div></div></section>
-<section class="work"><div class="container"><div class="grid">
-<div class="card"><h3>Pulse Analytics</h3><p style="color:var(--muted)">Real-time analytics dashboard used by 2k+ SaaS teams.</p></div>
-<div class="card"><h3>Lumina Store</h3><p style="color:var(--muted)">Headless commerce storefront with sub-second loads.</p></div>
-<div class="card"><h3>TrailFinder</h3><p style="color:var(--muted)">Mobile-first hiking planner synced offline.</p></div>
-</div></div></section>
-</body></html>`,
-    },
-    { path: "package.json", language: "json", content: JSON.stringify({ name: "portfolio-website", version: "1.0.0", scripts: { start: "npx serve ." }, dependencies: {} }, null, 2) },
-    { path: "README.md", language: "markdown", content: "# Portfolio Website\nA premium, responsive portfolio built by the Nexus AI team.\n" },
-  ],
-  entry: "app/index.html",
-};
+import {
+  portfolioSite,
+  ecommerceSite,
+  dashboardSite,
+  saasSite,
+  trackerSite,
+  bespokeSite,
+} from "./developerGradeTemplates";
 
-const demoSaasProject: GeneratedProject = {
-  name: "SaaS Analytics Dashboard",
-  framework: "Next.js / Tailwind",
-  files: [
-    {
-      path: "index.html",
-      language: "html",
-      content: `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Nexus Analytics — KPI Dashboard</title><style>
-:root{--accent:#f59e0b;--bg:#09090c;--card:#121217;--border:#27272a;--text:#fafafa;--muted:#a1a1aa}
-*{margin:0;padding:0;box-sizing:border-box}
-body{font-family:Inter,system-ui,sans-serif;background:var(--bg);color:var(--text);padding:32px}
-.header{display:flex;justify-content:space-between;align-items:center;margin-bottom:28px}
-.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:28px}
-.card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:22px}
-.label{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em}
-.val{font-size:32px;font-weight:800;color:#fff;margin-top:8px}
-.tag{color:#10b981;font-size:12px;font-weight:600;margin-top:6px}
-.chart-box{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:24px}
-@media (max-width:900px){.grid{grid-template-columns:1fr 1fr}}
-</style></head><body>
-<div class="header"><div><h1>SaaS Analytics Engine</h1><p style="color:var(--muted);font-size:14px">Real-time telemetry and API performance monitoring</p></div><span style="background:rgba(245,158,11,0.15);color:#f59e0b;padding:6px 14px;border-radius:999px;font-weight:700;font-size:12px">LIVE CLUSTER</span></div>
-<div class="grid">
-<div class="card"><div class="label">Monthly Recurring</div><div class="val">$48,290</div><div class="tag">↑ +14.2% this month</div></div>
-<div class="card"><div class="label">Active Users</div><div class="val">14,210</div><div class="tag">↑ +8.5% weekly</div></div>
-<div class="card"><div class="label">Conversion Rate</div><div class="val">4.82%</div><div class="tag">↑ +1.1% vs target</div></div>
-<div class="card"><div class="label">API Latency</div><div class="val" style="color:#10b981">12ms</div><div class="tag">99.98% uptime</div></div>
-</div>
-<div class="chart-box"><h3>Inference Telemetry Stream</h3><p style="color:var(--muted);font-size:13px;margin-top:4px">Zero dropped frames • Model AlphaV deployed</p></div>
-</body></html>`,
-    },
-    { path: "metrics.json", language: "json", content: JSON.stringify({ mrr: 48290, dau: 14210, conversionRate: 0.0482, latencyMs: 12 }, null, 2) },
-    { path: "README.md", language: "markdown", content: "# SaaS Analytics Dashboard\nReal-time telemetry and KPI dashboard generated by Nexus AI.\n" },
-  ],
-  entry: "index.html",
-};
+const demoProject: GeneratedProject = portfolioSite();
+
+const demoSaasProject: GeneratedProject = dashboardSite();
+
 
 const demoAlphaProject: GeneratedProject = {
   name: "AlphaV Neural Engine",
@@ -555,51 +494,18 @@ export const useStore = create<NexusState>()(
 
         if (template === "ecommerce") {
           desc = "Modern online store with product grid and checkout";
-          gen = {
-            name: name || "E-Commerce Store",
-            framework: "Static HTML",
-            entry: "index.html",
-            files: [
-              {
-                path: "index.html",
-                language: "html",
-                content: `<!DOCTYPE html><html><head><title>${name || "Nexus Store"}</title><style>body{background:#0a0a0c;color:#fff;font-family:system-ui,sans-serif;padding:32px}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}.card{background:#18181b;padding:16px;border-radius:12px;border:1px solid #27272a}.btn{background:#f59e0b;color:#000;font-weight:700;padding:8px 16px;border-radius:8px;border:none;cursor:pointer}</style></head><body><h1>${name || "Nexus Store"}</h1><p>Welcome to our new storefront.</p><div class="grid"><div class="card"><h3>Pro Wireless Headset</h3><p>$199</p><button class="btn">Add to Cart</button></div><div class="card"><h3>Mechanical Keyboard</h3><p>$149</p><button class="btn">Add to Cart</button></div><div class="card"><h3>Ergonomic Mouse</h3><p>$89</p><button class="btn">Add to Cart</button></div></div></body></html>`,
-              },
-            ],
-          };
+          gen = { ...ecommerceSite(), name: name || "Lumina Hardware Studio" };
         } else if (template === "saas") {
-          desc = "Production SaaS analytics dashboard";
-          gen = {
-            name: name || "SaaS Dashboard",
-            framework: "Next.js / Tailwind",
-            entry: "index.html",
-            files: [
-              {
-                path: "index.html",
-                language: "html",
-                content: `<!DOCTYPE html><html><head><title>${name || "SaaS Metrics"}</title><style>body{background:#0a0a0c;color:#e4e4e7;font-family:system-ui,sans-serif;padding:28px}.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin:24px 0}.box{background:#18181b;border:1px solid #27272a;padding:20px;border-radius:12px}.val{font-size:28px;font-weight:800;color:#f59e0b;margin-top:8px}</style></head><body><h1>${name || "SaaS Metrics"}</h1><div class="metrics"><div class="box"><div>Monthly Revenue</div><div class="val">$48,290</div></div><div class="box"><div>Active Users</div><div class="val">14,210</div></div><div class="box"><div>Conversion Rate</div><div class="val">4.8%</div></div><div class="box"><div>API Latency</div><div class="val">18ms</div></div></div></body></html>`,
-              },
-            ],
-          };
+          desc = "Production SaaS telemetry & cluster dashboard";
+          gen = { ...dashboardSite(), name: name || "Nexus Pulse Telemetry" };
         } else if (template === "blank") {
           desc = "Clean blank workspace";
-          gen = {
-            name: name || "Blank Project",
-            framework: "Static HTML",
-            entry: "index.html",
-            files: [
-              {
-                path: "index.html",
-                language: "html",
-                content: `<!DOCTYPE html><html><head><title>${name || "Blank Project"}</title></head><body style="background:#09090b;color:#fff;font-family:system-ui,sans-serif;padding:40px"><h1>${name || "Blank Project"}</h1><p>Start writing code or ask Nexus AI to build something.</p></body></html>`,
-              },
-            ],
-          };
+          gen = bespokeSite(name || "Custom Application");
         } else {
-          desc = "Responsive studio portfolio";
+          desc = "Responsive systems engineer portfolio";
           gen = {
-            ...demoProject,
-            name: name || "Portfolio Website",
+            ...portfolioSite(),
+            name: name || "Elena Rostova Portfolio",
           };
         }
 
