@@ -251,11 +251,10 @@ export function AgentsModal({ open, onClose }: { open: boolean; onClose: () => v
                 <div className="space-y-4">
                   <div className="rounded-2xl border border-primary/30 bg-primary/5 p-4 text-sm">
                     <div className="flex items-center gap-2 font-semibold text-primary">
-                      <Sparkles className="h-4 w-4" /> No keys? No problem.
+                      <Sparkles className="h-4 w-4" /> Keys are completely optional — 1 key is enough!
                     </div>
-                    <p className="mt-1 text-muted-foreground">
-                      Without keys, Nexus runs in <b>Demo mode</b> — the team simulates the full build pipeline so
-                      everything works instantly. Add keys whenever you want real generation.
+                    <p className="mt-1 text-muted-foreground text-xs leading-relaxed">
+                      You do <b>not need to fill every key</b>. Adding just <b>one API key</b> (like free Google Gemini or OpenAI) automatically powers your entire agent team. Without any keys, Nexus runs in <b>Demo mode</b> so everything works out of the box.
                     </p>
                   </div>
                   {PROVIDERS.filter((p) => p.id !== "demo").map((p) => (

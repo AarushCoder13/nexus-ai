@@ -788,20 +788,25 @@ export default function LoginPage() {
                   className="space-y-4"
                 >
                   <div>
-                    <h2 className="text-xl font-bold tracking-tight text-white">
-                      Power your AI models
-                    </h2>
+                    <div className="flex items-center gap-2">
+                      <h2 className="text-xl font-bold tracking-tight text-white">
+                        Power your AI models
+                      </h2>
+                      <span className="rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-400 px-2.5 py-0.5 text-[10px] font-bold">
+                        Optional — 1 key is enough
+                      </span>
+                    </div>
                     <p className="mt-1 text-xs text-zinc-400">
-                      Connect your API keys. They stay securely encrypted in your browser's local storage.
+                      Keys are <b>completely optional</b>. You do not need to fill in every key — just <b>1 key</b> powers the whole team.
                     </p>
                   </div>
 
                   {/* Informational callout */}
-                  <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 p-3 text-xs">
+                  <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 text-xs">
                     <div className="flex items-start gap-2">
                       <Sparkles className="h-4 w-4 shrink-0 text-amber-400 mt-0.5" />
                       <p className="text-zinc-300 leading-relaxed text-[11px]">
-                        You only need <strong className="text-white">ONE key</strong> to start! Google Gemini offers a 100% free key. Or launch with simulated Demo Mode anytime.
+                        <b>No key is compulsory!</b> Putting just <strong className="text-white">ONE key</strong> (like free Google Gemini or OpenAI) automatically powers all agent roles. Or click below to start in Demo Mode anytime.
                       </p>
                     </div>
                   </div>
@@ -906,33 +911,43 @@ export default function LoginPage() {
                   </div>
 
                   {/* Actions */}
-                  <div className="flex items-center justify-between gap-3 pt-2">
+                  <div className="flex items-center justify-between gap-2 pt-2">
                     <button
                       type="button"
                       onClick={() => setStep(2)}
-                      className="rounded-xl px-3.5 py-2 text-xs font-medium text-zinc-400 hover:bg-zinc-800 hover:text-white transition-colors"
+                      className="rounded-xl px-3 py-2 text-xs font-medium text-zinc-400 hover:bg-zinc-800 hover:text-white transition-colors"
                     >
                       Back
                     </button>
 
-                    <button
-                      type="button"
-                      disabled={completing}
-                      onClick={() => handleCompleteSetup(false)}
-                      className="flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-amber-500 via-amber-400 to-orange-500 px-5 py-2 text-xs font-bold text-black shadow-lg shadow-amber-500/20 hover:brightness-110 active:scale-[0.98] transition-all disabled:opacity-50"
-                    >
-                      {completing ? (
-                        <>
-                          <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                          <span>Launching Studio…</span>
-                        </>
-                      ) : (
-                        <>
-                          <Zap className="h-3.5 w-3.5 stroke-[2.5]" />
-                          <span>Launch Workspace 🚀</span>
-                        </>
-                      )}
-                    </button>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => handleCompleteSetup(true)}
+                        className="rounded-xl border border-zinc-700 bg-zinc-800/90 px-3.5 py-2 text-xs font-semibold text-zinc-300 hover:bg-zinc-700 hover:text-white transition-all"
+                      >
+                        Skip (Demo Mode)
+                      </button>
+
+                      <button
+                        type="button"
+                        disabled={completing}
+                        onClick={() => handleCompleteSetup(false)}
+                        className="flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-amber-500 via-amber-400 to-orange-500 px-4 py-2 text-xs font-bold text-black shadow-lg shadow-amber-500/20 hover:brightness-110 active:scale-[0.98] transition-all disabled:opacity-50"
+                      >
+                        {completing ? (
+                          <>
+                            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                            <span>Launching…</span>
+                          </>
+                        ) : (
+                          <>
+                            <Zap className="h-3.5 w-3.5 stroke-[2.5]" />
+                            <span>Save & Launch 🚀</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
                   </div>
                 </motion.div>
               )}

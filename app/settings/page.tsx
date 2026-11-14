@@ -26,6 +26,7 @@ import {
   Zap,
   HelpCircle,
   LogOut,
+  Sparkles,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useStore } from "@/lib/store";
@@ -635,14 +636,26 @@ export default function SettingsPage() {
           {tab === "keys" && (
             <div className="space-y-5">
               <div>
-                <h2 className="text-lg font-semibold">API Keys</h2>
-                <p className="max-w-md text-sm text-muted-foreground">
-                  Bring your own keys — stored only in your browser and sent directly to each provider over HTTPS. Never exposed in the bundle.
+                <div className="flex items-center gap-2">
+                  <h2 className="text-lg font-semibold">API Keys</h2>
+                  <span className="rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-400 px-2 py-0.5 text-[11px] font-bold">
+                    Optional — 1 key is enough
+                  </span>
+                </div>
+                <p className="max-w-xl text-sm text-muted-foreground mt-1">
+                  <b>No key is compulsory!</b> You do not need to provide every key. Supplying just <b>1 key</b> (such as free Google Gemini or OpenAI) automatically powers all agent roles. Without keys, Nexus runs in Demo Mode.
                 </p>
               </div>
-              <div className="flex items-center gap-2 rounded-2xl border border-emerald-500/30 bg-emerald-500/5 p-3 text-sm text-emerald-600">
-                <ShieldCheck className="h-4 w-4 shrink-0" />
-                Keys never leave your device except to reach the provider you chose.
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                <div className="flex items-center gap-2 rounded-2xl border border-emerald-500/30 bg-emerald-500/5 p-3 text-emerald-600">
+                  <ShieldCheck className="h-4 w-4 shrink-0" />
+                  <span>Keys stay encrypted locally in your browser.</span>
+                </div>
+                <div className="flex items-center gap-2 rounded-2xl border border-amber-500/30 bg-amber-500/5 p-3 text-amber-300">
+                  <Sparkles className="h-4 w-4 shrink-0 text-amber-400" />
+                  <span>Any single active key automatically powers all roles.</span>
+                </div>
               </div>
               {PROVIDERS.filter((p) => p.id !== "demo").map((p) => {
                 const guide = PROVIDER_GUIDES[p.id];
