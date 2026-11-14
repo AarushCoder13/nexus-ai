@@ -25,9 +25,10 @@ function ProviderRow({ provider, onDone }: { provider: ProviderId; onDone: () =>
       // move this provider's role back to demo
       if (member) setTeamProvider(member.id, "demo");
     } else {
-      // assign this provider to the first role currently on demo
+      // assign this provider to the first role currently on demo, or first member
       const demoMember = team.find((m) => m.provider === "demo");
       if (demoMember) setTeamProvider(demoMember.id, provider);
+      else if (team[0]) setTeamProvider(team[0].id, provider);
     }
   };
 

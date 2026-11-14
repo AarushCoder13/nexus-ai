@@ -33,11 +33,24 @@ export function clientIp(req: Request): string {
  * this server as a free LLM proxy) will not match and are refused.
  */
 export function isSameOrigin(req: Request): boolean {
-  const origin = req.headers.get("origin") || "";
-  if (!origin) return false;
+  const origin = req.headers.get("origin");
   const host = req.headers.get("host") || "";
-  const proto = req.headers.get("x-forwarded-proto") || "http";
-  return origin === `${proto}://${host}`;
+
+  if (!origin) {
+    const referer = req.headers.get("referer");
+    if (!referer) return true;
+    try {
+      return new URL(referer).host === host;
+    } catch {
+      return true;
+    }
+  }
+
+  try {
+    return new URL(origin).host === host;
+  } catch {
+    return false;
+  }
 }
 
 /** Returns true and can be used as an early guard: respond 403 if cross-origin. */

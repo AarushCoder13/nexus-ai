@@ -26,6 +26,7 @@ import type {
   TeamMember,
   AgentRole,
   UserProfile,
+  ProviderId,
 } from "./types";
 import { AGENT_ROLES } from "./types";
 import { runAgentPipeline, initialSteps, type ReferenceAttachment } from "./agent";
@@ -33,6 +34,7 @@ import { runRealPipeline } from "./realBuild";
 import { cn, uid, timeAgo } from "./utils";
 import { nexusIndexedDBStorage, requestPersistentStorage } from "./idb";
 import { CONNECTORS, type ConnectedAccount } from "./connectors";
+import { toast } from "sonner";
 
 export type WorkspaceTab = "preview" | "code" | "files" | "console" | "history" | "components";
 export type Drawer = "sidebar" | "workspace" | null;
@@ -452,7 +454,30 @@ export const useStore = create<NexusState>()(
         }
         set((s) => ({ userProfile: { ...s.userProfile, ...profile } }));
       },
-      setKey: (provider, value) => set((s) => ({ keys: { ...s.keys, [provider]: value } })),
+      setKey: (provider, value) =>
+        set((s) => {
+          const nextKeys = { ...s.keys, [provider]: value };
+          const trimmed = value.trim();
+          let nextTeam = s.team;
+
+          if (trimmed && provider !== "demo") {
+            const allDemo = s.team.every((t) => t.provider === "demo");
+            if (allDemo) {
+              nextTeam = s.team.map((t) => ({ ...t, provider }));
+            } else if (!s.team.some((t) => t.provider === provider)) {
+              let replaced = false;
+              nextTeam = s.team.map((t) => {
+                if (!replaced && t.provider === "demo") {
+                  replaced = true;
+                  return { ...t, provider };
+                }
+                return t;
+              });
+            }
+          }
+
+          return { keys: nextKeys, team: nextTeam };
+        }),
       setConnection: (service, token) => set((s) => ({ connections: { ...s.connections, [service]: token } })),
       connectAccount: (provider, data) => {
         const connector = CONNECTORS.find((c) => c.id === provider);
@@ -783,28 +808,68 @@ export const useStore = create<NexusState>()(
         // Real orchestration when real provider keys are configured (and no
         // screenshot attachment — that path currently needs the client canvas).
         let final: GeneratedProject | undefined;
+        let realProviderUsed: ProviderId | null = null;
+
         if (!attachment) {
-          const teamRequests = team
+          // 1. Gather team requests for members mapped to real keys
+          let teamRequests = team
             .map((t) => ({ role: t.role, provider: t.provider, key: (keys[t.provider] ?? "").trim() }))
             .filter((t) => t.provider !== "demo" && t.key);
+
+          // 2. Auto-assign: if team was all demo, but user configured any API keys in store
+          if (teamRequests.length === 0) {
+            const kMap = keys as Record<string, string | undefined>;
+            const configuredProviders = (Object.keys(keys) as ProviderId[]).filter(
+              (p) => p !== "demo" && !!(kMap[p] ?? "").trim()
+            );
+
+            if (configuredProviders.length > 0) {
+              teamRequests = team.map((t, idx) => {
+                const assigned = configuredProviders[idx % configuredProviders.length];
+                return {
+                  role: t.role,
+                  provider: assigned,
+                  key: (kMap[assigned] ?? "").trim(),
+                };
+              });
+
+              // Sync store team so the UI badges reflect the active AI model
+              set((s) => ({
+                team: s.team.map((t, idx) => ({
+                  ...t,
+                  provider: configuredProviders[idx % configuredProviders.length],
+                })),
+              }));
+            }
+          }
+
           if (teamRequests.length > 0) {
             const real = await runRealPipeline(content, teamRequests, cb);
             if (!real.fallbackToDemo && real.project) {
               final = normalizeProject(real.project) || real.project;
+              realProviderUsed = teamRequests[0]?.provider || null;
+            } else if (real.error) {
+              cb.onConsole?.({ id: uid("c"), ts: Date.now(), level: "error", text: `[LLM Error] ${real.error}` });
+              toast.error(`LLM Error: ${real.error}. Switching to simulated engine.`);
             }
           }
         }
+
         if (!final) {
           const sim = await runAgentPipeline(content, team, cb, attachment ? { attachment } : {});
           final = normalizeProject(sim) || sim;
         }
 
         const now = Date.now();
+        const providerName = realProviderUsed
+          ? (team.find((t) => t.provider === realProviderUsed)?.provider || realProviderUsed)
+          : null;
+
         const summary: Message = {
           id: uid("m"),
           chatId,
           role: "assistant",
-          content: `✅ **${final.name}** is ready.\n\nThe Nexus team planned, built, and reviewed this project. The Reviewer caught and fixed a few issues before the preview went live — view it in the **Preview** tab, or browse the files and console logs.\n\nWant to iterate? Try *"make it darker"* or *"add a contact section"*.`,
+          content: `✅ **${final.name}** is ready${providerName ? ` (Generated with **${providerName.toUpperCase()}**)` : ""}.\n\nThe Nexus team planned, built, and reviewed this project. The Reviewer caught and fixed issues before the preview went live — view it in the **Preview** tab, or browse the files and console logs.\n\nWant to iterate? Try *"make it darker"* or *"add a contact section"*.`,
           createdAt: now,
         };
 

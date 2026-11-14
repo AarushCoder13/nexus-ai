@@ -62,6 +62,8 @@ export default function SettingsPage() {
   const setRightWidth = useStore((s) => s.setRightWidth);
   const publishSecret = useStore((s) => s.publishSecret);
   const setPublishSecret = useStore((s) => s.setPublishSecret);
+  const team = useStore((s) => s.team);
+  const setTeamProvider = useStore((s) => s.setTeamProvider);
 
   const [tab, setTab] = useState<Tab>("connectors");
   const isHydrated = useStore((s) => s.isHydrated);
@@ -80,6 +82,37 @@ export default function SettingsPage() {
   const [saved, setSaved] = useState(false);
   const [shown, setShown] = useState<Record<string, boolean>>({});
   const [helpProviderId, setHelpProviderId] = useState<string | null>(null);
+
+  // Key testing state
+  const [testingKeyId, setTestingKeyId] = useState<string | null>(null);
+  const [keyTestResults, setKeyTestResults] = useState<Record<string, { ok: boolean; message: string }>>({});
+
+  const handleTestKey = async (providerId: ProviderId) => {
+    const key = (keys[providerId] ?? "").trim();
+    if (!key) {
+      toast.error(`Please enter an API key for ${providerId} first.`);
+      return;
+    }
+    setTestingKeyId(providerId);
+    try {
+      const res = await fetch("/api/verify-key", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ provider: providerId, key }),
+      });
+      const data = await res.json();
+      setKeyTestResults((prev) => ({ ...prev, [providerId]: data }));
+      if (data.ok) {
+        toast.success(data.message || "Key verified successfully!");
+      } else {
+        toast.error(`Key Error: ${data.message}`);
+      }
+    } catch {
+      toast.error("Network error verifying API key.");
+    } finally {
+      setTestingKeyId(null);
+    }
+  };
 
   // Connectors filter state
   const [connCategory, setConnCategory] = useState<string>("All");
@@ -636,15 +669,34 @@ export default function SettingsPage() {
                         </div>
                       </div>
 
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 flex-wrap justify-end">
                         <span
                           className={cn(
                             "rounded-full px-2.5 py-0.5 text-[11px] font-medium",
-                            keys[p.id] ? "bg-emerald-500/10 text-emerald-600" : "bg-secondary text-muted-foreground",
+                            keys[p.id] ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/30" : "bg-secondary text-muted-foreground",
                           )}
                         >
                           {keys[p.id] ? "Configured" : "Not set"}
                         </span>
+
+                        {team.some((m) => m.provider === p.id) ? (
+                          <span className="rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-400 px-2.5 py-0.5 text-[10px] font-bold">
+                            Active for Team
+                          </span>
+                        ) : keys[p.id] ? (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              useStore.setState((s) => ({
+                                team: s.team.map((t) => ({ ...t, provider: p.id })),
+                              }));
+                              toast.success(`Assigned ${p.name} as default model for the team!`);
+                            }}
+                            className="rounded-full bg-secondary hover:bg-amber-500/20 hover:text-amber-300 border border-border px-2 py-0.5 text-[10px] font-medium transition-colors"
+                          >
+                            Set as Team Model
+                          </button>
+                        ) : null}
 
                         {guide && (
                           <>
@@ -700,10 +752,48 @@ export default function SettingsPage() {
                       >
                         Paste
                       </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        type="button"
+                        disabled={!keys[p.id]?.trim() || testingKeyId === p.id}
+                        onClick={() => handleTestKey(p.id)}
+                        className="rounded-xl text-xs flex items-center gap-1.5"
+                      >
+                        {testingKeyId === p.id ? (
+                          <>
+                            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                            <span>Testing…</span>
+                          </>
+                        ) : (
+                          <>
+                            <Zap className="h-3 w-3 text-amber-500" />
+                            <span>Test Key</span>
+                          </>
+                        )}
+                      </Button>
                       <Button variant="outline" size="icon" onClick={() => setShown((s) => ({ ...s, [p.id]: !s[p.id] }))}>
                         {shown[p.id] ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                       </Button>
                     </div>
+
+                    {keyTestResults[p.id] && (
+                      <div
+                        className={cn(
+                          "mt-2.5 flex items-center gap-2 rounded-xl p-2.5 text-xs",
+                          keyTestResults[p.id].ok
+                            ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/30"
+                            : "bg-destructive/10 text-destructive border border-destructive/30"
+                        )}
+                      >
+                        {keyTestResults[p.id].ok ? (
+                          <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-400" />
+                        ) : (
+                          <XCircle className="h-4 w-4 shrink-0 text-destructive" />
+                        )}
+                        <span className="font-medium">{keyTestResults[p.id].message}</span>
+                      </div>
+                    )}
                   </div>
                 );
               })}

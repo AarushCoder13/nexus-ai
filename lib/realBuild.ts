@@ -33,12 +33,13 @@ export async function runRealPipeline(
   prompt: string,
   team: TeamRequest[],
   cb: Callbacks,
-): Promise<{ project?: GeneratedProject; fallbackToDemo: boolean }> {
+): Promise<{ project?: GeneratedProject; fallbackToDemo: boolean; error?: string }> {
   cb.onStatus?.("Building");
   for (const s of STAGES) cb.onStep?.({ ...s, status: "pending", agent: "" });
 
   cb.onStep?.({ ...STAGES[0], status: "active", agent: "" });
-  cb.onConsole?.(line("info", `Sending request to ${[...new Set(team.map((t) => t.provider))].join(", ")}…`));
+  const providerNames = [...new Set(team.map((t) => t.provider))].join(", ");
+  cb.onConsole?.(line("info", `Initiating LLM generation via ${providerNames}…`));
 
   let res: Response;
   try {
@@ -47,12 +48,25 @@ export async function runRealPipeline(
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ prompt, team }),
     });
-  } catch {
-    return { fallbackToDemo: true };
+  } catch (err: any) {
+    const msg = `Network error calling /api/build: ${err?.message || String(err)}`;
+    cb.onConsole?.(line("error", msg));
+    return { fallbackToDemo: true, error: msg };
   }
-  if (!res.ok) return { fallbackToDemo: true };
+
+  if (!res.ok) {
+    const errBody = await res.json().catch(() => null);
+    const msg = errBody?.error || `Build API returned status ${res.status}`;
+    cb.onConsole?.(line("error", `LLM Error: ${msg}`));
+    return { fallbackToDemo: true, error: msg };
+  }
+
   const data = await res.json().catch(() => null);
-  if (!data || data.demo || !data.project) return { fallbackToDemo: true };
+  if (!data || data.demo || !data.project) {
+    const msg = data?.error || "Pipeline returned empty response";
+    cb.onConsole?.(line("warn", `${msg}. Falling back to simulated engine…`));
+    return { fallbackToDemo: true, error: msg };
+  }
 
   cb.onStep?.({ ...STAGES[0], status: "done", agent: "" });
   cb.onStep?.({ ...STAGES[1], status: "active", agent: "" });
