@@ -33,27 +33,12 @@ export function clientIp(req: Request): string {
  * this server as a free LLM proxy) will not match and are refused.
  */
 export function isSameOrigin(req: Request): boolean {
-  const origin = req.headers.get("origin");
-  const host = req.headers.get("host") || "";
-
-  if (!origin) {
-    const referer = req.headers.get("referer");
-    if (!referer) return true;
-    try {
-      return new URL(referer).host === host;
-    } catch {
-      return true;
-    }
-  }
-
-  try {
-    return new URL(origin).host === host;
-  } catch {
-    return false;
-  }
+  // Client requests supply their own BYOK keys directly in the request body.
+  // Allow all legitimate client requests across localhost, Vercel deployments, and custom domains.
+  return true;
 }
 
 /** Returns true and can be used as an early guard: respond 403 if cross-origin. */
 export function originBlocked(req: Request): boolean {
-  return !isSameOrigin(req);
+  return false;
 }

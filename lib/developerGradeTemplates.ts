@@ -16,16 +16,43 @@ export type TemplateId =
 
 export function detectTemplate(request: string): TemplateId {
   const r = request.toLowerCase();
+
+  // If request targets a specific business domain, ALWAYS route to bespoke synthesis
+  if (
+    /c+o*f+e+|cffee|coffe|coffee|coffeeshop|cafe|café|espresso|roaster|roastery|brew|latte|barista|bean|bistro|bakery|diner|pizza|burger|food|restaurant|dining|estate|villa|condo|property|apartment|penthouse|gym|fitness|workout|coach|trainer|athlete|crypto|token|dex|web3|wallet|blockchain|fashion|clothing|sneaker|shoe|boutique|clinic|doctor|dental|health|medical|book|flower|pet|travel|hotel|mechanic|car|auto|beauty|salon|spa|lawyer|law|agency/.test(
+      r
+    )
+  ) {
+    return "bespoke";
+  }
+
   if (/portfol|resume|developer cv|bio\b|personal site/.test(r)) return "portfolio";
-  if (/ecommerce|e-commerce|store|shop|sell|cart|merch|clothing|shoes|hardware|keyboard/.test(r)) return "ecommerce";
-  if (/dashboard|analytics|metrics|telemetry|kpi|cloud monitor|ops|cluster/.test(r)) return "dashboard";
-  if (/expense|tracker|budget|finance|invoice|money|accounting|spending/.test(r)) return "tracker";
-  if (/saas|api|developer tool|platform|infra|distributed|database|auth|sdk|engine/.test(r)) return "saas";
+  if (/hardware store|keyboard store|gadget store|tech hardware/.test(r)) return "ecommerce";
+  if (/telemetry dashboard|cluster dashboard|kpi dashboard|cloud monitor|ops dashboard/.test(r)) return "dashboard";
+  if (/expense tracker|budget tracker|finance tracker|accounting app/.test(r)) return "tracker";
+  if (/event streaming|serverless platform|api platform|developer tool landing/.test(r)) return "saas";
+
   return "bespoke";
 }
 
 export function templateName(t: TemplateId, request?: string): string {
   if (t === "bespoke" && request) {
+    const r = request.toLowerCase();
+    if (/c+o*f+e+|cffee|coffe|coffee|coffeeshop|cafe|café|espresso|roaster|roastery|brew|latte|barista|bean/.test(r)) {
+      return "Artisan Coffee Roastery & Espresso Lab";
+    }
+    if (/restaurant|bistro|diner|pizza|burger|food|dining|bakery/.test(r)) {
+      return "Artisanal Kitchen & Dining";
+    }
+    if (/estate|villa|condo|property|apartment|penthouse/.test(r)) {
+      return "Prime Architectural Residences";
+    }
+    if (/gym|fitness|workout|coach|trainer/.test(r)) {
+      return "High Performance Athletics & Coaching";
+    }
+    if (/crypto|token|dex|web3|wallet|blockchain/.test(r)) {
+      return "Decentralized Liquidity Terminal";
+    }
     const clean = request
       .replace(/^(build|create|make|design|generate|code|develop)\s+(a|an|the)?\s*/i, "")
       .replace(/website|web app|app|platform|page/gi, "")
@@ -267,12 +294,13 @@ export function bespokeSite(request: string): GeneratedProject {
   const rawWords = cleanReq.split(/\s+/).filter(Boolean);
   const title = rawWords.slice(0, 3).map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ") || "Nexus Studio";
   
-  // Extract or deduce industry domain
-  const isFood = /restaurant|cafe|pizza|burger|bar|coffee|bakery|diner|bistro|menu|food/i.test(cleanReq);
-  const isRealEstate = /estate|villa|condo|property|apartment|penthouse|house|realty/i.test(cleanReq);
-  const isFitness = /gym|fitness|workout|coach|trainer|crossfit|yoga|athlete/i.test(cleanReq);
-  const isCrypto = /crypto|token|dex|web3|wallet|blockchain|coin|swap|defi/i.test(cleanReq);
-  const isMedia = /music|audio|beat|track|video|film|cinema|photo|gallery|art/i.test(cleanReq);
+  // Extract or deduce industry domain (with typo tolerance)
+  const isCoffee = /c+o*f+e+|cffee|coffe|coffee|coffeeshop|cafe|café|espresso|roaster|roastery|brew|latte|cappuccino|barista|bean/i.test(cleanReq);
+  const isFood = !isCoffee && /restaurant|bistro|pizza|burger|bar|pub|diner|menu|kitchen|grill|steak|tasting|dining|bakery/i.test(cleanReq);
+  const isFashion = /clothing|sneaker|shoe|apparel|streetwear|boutique|hoodie|jacket|fashion|wear|merch/i.test(cleanReq);
+  const isRealEstate = /estate|villa|condo|property|apartment|penthouse|house|realty|realtor|rental/i.test(cleanReq);
+  const isFitness = /gym|fitness|workout|coach|trainer|crossfit|yoga|athlete|boxing|training/i.test(cleanReq);
+  const isCrypto = /crypto|token|dex|web3|wallet|blockchain|coin|swap|defi|nft/i.test(cleanReq);
 
   let accent = "#f59e0b"; // Solar Amber default
   let domainBadge = "Operational · Cluster v3.4";
@@ -281,13 +309,48 @@ export function bespokeSite(request: string): GeneratedProject {
   let heroHeading = `Next-Generation ${title}`;
   let heroDesc = `Crafted specifically for "${cleanReq || title}". Fully responsive, complete client-side state machine, interactive modals, and real-time filtering.`;
   let categories = ["All", "Featured", "Core", "Pending", "Archived"];
+  let newEntryLabel = "New Entry";
+  let quickActionLabel = "Quick Action";
+  let quickActionToast = "Dataset exported to local JSON storage";
+  let statsHtml = `
+    <div class="hero-stat"><b>6 Nodes</b><span>Active Clusters</span></div>
+    <div class="hero-stat"><b>&lt; 14ms</b><span>Global Latency</span></div>
+    <div class="hero-stat"><b>99.98%</b><span>Target Accuracy</span></div>
+    <div class="hero-stat"><b>Local-First</b><span>Zero Lag Storage</span></div>
+  `;
 
   type DomainItem = { id: string; title: string; category: string; status: string; metric: string; desc: string };
   let items: DomainItem[] = [];
 
-  if (isFood) {
+  if (isCoffee) {
+    accent = "#d97706";
+    domainBadge = "Small-Batch Roasting Daily • Single Origin Reserve";
+    searchPlaceholder = "Search beans, roasts, tasting notes, brew gear…";
+    heroEyebrow = "Artisanal Specialty Roastery & Espresso Lab";
+    const shopWords = cleanReq.replace(/^(build|create|make|website|web app|app|for)\s*/i, "").trim();
+    heroHeading = shopWords ? shopWords.charAt(0).toUpperCase() + shopWords.slice(1) : "Aura Artisan Coffee Roasters";
+    heroDesc = "Sustainably sourced single-origin coffees, micro-lot roasts, and precision espresso bar extractions. Shipped within 48 hours of roast.";
+    categories = ["All", "Single Origin Beans", "Espresso Bar", "Cold Brew", "Pastries & Brew Gear"];
+    items = [
+      { id: "1", title: "Ethiopia Yirgacheffe G1 Washed", category: "Single Origin Beans", status: "Top Lot", metric: "$22.00", desc: "Elevation 1,950m • Tasting Notes: Jasmine Blossom, Bergamot Citrus, Candied Peach • Washed Heirloom." },
+      { id: "2", title: "Colombia Geisha Reserve Micro-Lot", category: "Single Origin Beans", status: "Limited Lot", metric: "$28.50", desc: "Elevation 1,800m • Tasting Notes: White Orchid, Honeysuckle, Silky Cocoa • Anaerobic Natural process." },
+      { id: "3", title: "Obsidian Signature Espresso Roast", category: "Espresso Bar", status: "House Blend", metric: "$18.50", desc: "Medium-Dark Roast • Tasting Notes: Dark Chocolate Truffle, Toasted Hazelnut, Cane Caramel • Crema heavy." },
+      { id: "4", title: "Single-Origin Nitro Cold Brew (4-Pack)", category: "Cold Brew", status: "Ready to Drink", metric: "$16.00", desc: "Slow steeped 24 hours in cold filtered spring water. Infused with pure nitrogen cascade. Zero additives." },
+      { id: "5", title: "Handcrafted Oat Cortado & Cardamom Bun", category: "Pastries & Brew Gear", status: "Fresh Daily", metric: "$9.50", desc: "Double ristretto pull of house espresso with silky steamed oat milk, served alongside a warm Swedish cardamom knot." },
+      { id: "6", title: "Fellow Stagg EKG Gooseneck Kettle", category: "Pastries & Brew Gear", status: "In Stock", metric: "$165.00", desc: "Precision pour-over kettle with PID variable temperature control and LCD stopwatch display. Matte Obsidian Black." },
+    ];
+    statsHtml = `
+      <div class="hero-stat"><b>100% Arabica</b><span>Direct Trade Micro-Lots</span></div>
+      <div class="hero-stat"><b>88+ SCA</b><span>Cupping Score</span></div>
+      <div class="hero-stat"><b>&lt; 48 Hours</b><span>Peak Freshness Roast</span></div>
+      <div class="hero-stat"><b>Cast Iron Drum</b><span>Vintage Flame Roaster</span></div>
+    `;
+    newEntryLabel = "Add Coffee Bean";
+    quickActionLabel = "Reserve Tasting Table";
+    quickActionToast = "Tasting table reservation recorded ✓";
+  } else if (isFood) {
     accent = "#f97316";
-    heroEyebrow = "Artisanal Kitchen & Bar";
+    heroEyebrow = "Artisanal Kitchen & Dining";
     heroHeading = title;
     heroDesc = "Seasonal, locally sourced ingredients prepared by culinary craftsmen. Browse our cellar reserves and wood-fired selections.";
     categories = ["All", "Mains", "Starters", "Cocktails", "Desserts"];
@@ -299,6 +362,40 @@ export function bespokeSite(request: string): GeneratedProject {
       { id: "5", title: "Burrata Pugliese & Heirloom Peach", category: "Starters", status: "Fresh", metric: "$21.00", desc: "Charred stone fruit, aged modena balsamic, basil oil crystals." },
       { id: "6", title: "Valrhona Dark Chocolate Ganache", category: "Desserts", status: "Limited", metric: "$14.00", desc: "Sea salt flakes, extra virgin olive oil, smoked vanilla gelato." },
     ];
+    statsHtml = `
+      <div class="hero-stat"><b>Wood Fired</b><span>900° Hearth Oven</span></div>
+      <div class="hero-stat"><b>Organic Farm</b><span>Local Seasonal Harvest</span></div>
+      <div class="hero-stat"><b>Cellar Reserve</b><span>Curated Natural Wines</span></div>
+      <div class="hero-stat"><b>Handmade</b><span>Fresh Daily Pasta & Dough</span></div>
+    `;
+    newEntryLabel = "Add Dish";
+    quickActionLabel = "Book Table";
+    quickActionToast = "Table reservation opened ✓";
+  } else if (isFashion) {
+    accent = "#ec4899";
+    domainBadge = "Spring / Summer Studio Collection • Limited Run";
+    searchPlaceholder = "Search footwear, outerwear, lookbook…";
+    heroEyebrow = "Contemporary Apparel & Footwear Studio";
+    heroHeading = title;
+    heroDesc = "Minimalist silhouettes, heavyweight French terry fabrics, and handcrafted sneakers built for the modern urban wardrobe.";
+    categories = ["All", "Footwear", "Outerwear", "Tees & Knits", "Accessories"];
+    items = [
+      { id: "1", title: "Sovereign Heavyweight Hoodie", category: "Outerwear", status: "Best Seller", metric: "$145.00", desc: "450 GSM custom-milled French terry, pre-shrunk, double-lined hood, relaxed drop shoulder." },
+      { id: "2", title: "Retro Runner V2 Sneaker", category: "Footwear", status: "Limited Drop", metric: "$185.00", desc: "Italian calfskin leather, Vibram rugged tread outsole, orthotic cork footbed." },
+      { id: "3", title: "Technical Ripstop Field Anorak", category: "Outerwear", status: "Waterproof", metric: "$240.00", desc: "3-layer seam-sealed membrane, YKK Aquaguard zips, packable hood system." },
+      { id: "4", title: "Monolith Waxed Canvas Tote", category: "Accessories", status: "Handmade", metric: "$65.00", desc: "18oz dry-wax canvas, vegetable-tanned bridle leather straps, internal laptop sleeve." },
+      { id: "5", title: "Vintage Garment-Dyed Tee", category: "Tees & Knits", status: "Pre-Washed", metric: "$58.00", desc: "260 GSM combed cotton jersey, enzyme wash finish for broken-in hand feel." },
+      { id: "6", title: "Precision Minimalist Watch", category: "Accessories", status: "Numbered 1/500", metric: "$280.00", desc: "Miyota automatic movement, sapphire crystal face, Horween leather quick-release band." },
+    ];
+    statsHtml = `
+      <div class="hero-stat"><b>450 GSM</b><span>Heavyweight French Terry</span></div>
+      <div class="hero-stat"><b>Limited 500</b><span>Numbered Collector Editions</span></div>
+      <div class="hero-stat"><b>Carbon Neutral</b><span>Tracked Priority Shipping</span></div>
+      <div class="hero-stat"><b>Hand Treated</b><span>Garment Dye Craftsmanship</span></div>
+    `;
+    newEntryLabel = "Add Product";
+    quickActionLabel = "View Lookbook";
+    quickActionToast = "Curated lookbook gallery loaded ✓";
   } else if (isRealEstate) {
     accent = "#10b981";
     heroEyebrow = "Curated Prime Residences";
@@ -313,6 +410,15 @@ export function bespokeSite(request: string): GeneratedProject {
       { id: "5", title: "Glass Pavilion Residence", category: "Villas", status: "Architectural", metric: "$7,600,000", desc: "Minimalist concrete & glass cantilever, geothermal climate system." },
       { id: "6", title: "Monaco Grand View Sky-Villa", category: "Penthouses", status: "High Demand", metric: "$18,500,000", desc: "Unobstructed Mediterranean sweep, private rooftop deck, dedicated 24/7 staff." },
     ];
+    statsHtml = `
+      <div class="hero-stat"><b>100% Verified</b><span>Title & Architectural Deeds</span></div>
+      <div class="hero-stat"><b>Concierge</b><span>24/7 Dedicated Care</span></div>
+      <div class="hero-stat"><b>Prime Districts</b><span>High Capital Growth</span></div>
+      <div class="hero-stat"><b>Private Viewings</b><span>Discreet Key Access</span></div>
+    `;
+    newEntryLabel = "List Property";
+    quickActionLabel = "Schedule Tour";
+    quickActionToast = "Private showing request registered ✓";
   } else if (isFitness) {
     accent = "#06b6d4";
     heroEyebrow = "High Performance Human Athletics";
@@ -327,6 +433,15 @@ export function bespokeSite(request: string): GeneratedProject {
       { id: "5", title: "Aerobic Base Capacity (Zone 2)", category: "Metabolic", status: "Cardio", metric: "135 bpm Avg", desc: "Low-impact ergometer steady-state session to optimize mitochondrial density." },
       { id: "6", title: "Isometric Joint Stability", category: "Mobility", status: "Prehab", metric: "Daily Flow", desc: "Overcoming isometrics, scapular retraction holds, knee tendon loading." },
     ];
+    statsHtml = `
+      <div class="hero-stat"><b>Biometric VBT</b><span>Velocity & Power Feedback</span></div>
+      <div class="hero-stat"><b>Periodized</b><span>Autoregulated RPE Loads</span></div>
+      <div class="hero-stat"><b>Mitochondrial</b><span>Zone 2 Aerobic Base</span></div>
+      <div class="hero-stat"><b>1-on-1</b><span>Certified Strength Coaches</span></div>
+    `;
+    newEntryLabel = "Add Workout";
+    quickActionLabel = "Start Session";
+    quickActionToast = "Training session timer initialized ✓";
   } else if (isCrypto) {
     accent = "#a855f7";
     heroEyebrow = "Decentralized Liquidity Terminal";
@@ -341,6 +456,15 @@ export function bespokeSite(request: string): GeneratedProject {
       { id: "5", title: "Staked Validator Pool (stETH)", category: "Yield", status: "Liquid", metric: "4.2% Base", desc: "Institutional grade validator nodes with zero slashing penalty history." },
       { id: "6", title: "Synthetic Commodity Index (GLD)", category: "Spot", status: "Backed 1:1", metric: "$2,640.10", desc: "Collateralized real-world asset tracker with on-chain oracle verification." },
     ];
+    statsHtml = `
+      <div class="hero-stat"><b>$480M+ TVL</b><span>Multi-Sig Liquidity Vaults</span></div>
+      <div class="hero-stat"><b>Sub-ms</b><span>Algorithmic Matching Engine</span></div>
+      <div class="hero-stat"><b>0.05% Fee</b><span>Optimized Dynamic AMM</span></div>
+      <div class="hero-stat"><b>Zero Custody</b><span>On-Chain Verifiable Solvency</span></div>
+    `;
+    newEntryLabel = "Add Asset";
+    quickActionLabel = "Connect Wallet";
+    quickActionToast = "Web3 wallet connected via simulated EIP-1193 ✓";
   } else {
     // Default high-grade tech/app workspace
     categories = ["All", "Core Modules", "Pipelines", "Integrations", "Security"];
@@ -436,10 +560,10 @@ ${baseCss(accent)}
     </div>
     <div style="display:flex;align-items:center;gap:10px;">
       <button class="btn btn-secondary" onclick="openModal('createModal')">
-        ${ICONS.plus} <span>New Entry</span>
+        ${ICONS.plus} <span>${newEntryLabel}</span>
       </button>
-      <button class="btn btn-primary" onclick="showToast('Dataset exported to local JSON storage', '⚡')">
-        ${ICONS.zap} <span>Quick Action</span>
+      <button class="btn btn-primary" onclick="showToast('${quickActionToast}', '⚡')">
+        ${ICONS.zap} <span>${quickActionLabel}</span>
       </button>
     </div>
   </div>
@@ -451,10 +575,7 @@ ${baseCss(accent)}
     <h1>${heroHeading}</h1>
     <p>${heroDesc}</p>
     <div class="hero-stats">
-      <div class="hero-stat"><b>6 Nodes</b><span>Active Clusters</span></div>
-      <div class="hero-stat"><b>&lt; 14ms</b><span>Global Latency</span></div>
-      <div class="hero-stat"><b>99.98%</b><span>Target Accuracy</span></div>
-      <div class="hero-stat"><b>Local-First</b><span>Zero Lag Storage</span></div>
+      ${statsHtml}
     </div>
   </div>
 </section>

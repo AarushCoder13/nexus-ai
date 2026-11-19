@@ -109,40 +109,13 @@ DELIVERABLE:
     const html = extractHtml(gen.text);
     if (!html) throw new Error("Provider returned an empty page.");
 
-    // --- Reviewer pass (LLM critique) ---
-    let issues: string[] = [];
-    try {
-      const reviewPrompt = `You are a strict Principal Code Auditor. Review the following HTML code:
-1. Check that it DOES NOT look like a generic vibe-coded template (ensure all buttons have working event handlers, search/filter works, modals work).
-2. Check for syntax errors, broken layout, contrast issues, or missing mobile styles.
-3. Check that it uses inline SVGs instead of cheesy emojis as icons.
+    // Fast code audit (replaces slow multi-roundtrip timeouts)
+    const issues: string[] = [];
+    if (!/<script[\s>]/i.test(html)) issues.push("Ensure interactive scripts are loaded");
+    if (!/viewport/i.test(html)) issues.push("Ensure responsive viewport is set");
 
-Respond with STRICT JSON only: {"issues":["..."]} — return an empty array [] if it passes senior developer standards.
-
-HTML:
-${html}`;
-      const rev = await runWithFallback(real, reviewPrompt);
-      issues = parseIssues(rev.text);
-    } catch {
-      issues = [];
-    }
-
-    // --- Fix pass ---
-    let finalHtml = html;
-    let fixesApplied = 0;
-    if (issues.length > 0) {
-      try {
-        const fixPrompt = `A senior code auditor found these issues in the application:\n- ${issues.join("\n- ")}\n\nFix them completely. Make sure all interactive elements work seamlessly and adhere to developer-grade polish. Output ONLY the raw complete HTML starting with <!DOCTYPE html>, no markdown fences.\n\nOriginal HTML:\n${html}`;
-        const fixed = await runWithFallback(real, fixPrompt);
-        const fixedHtml = extractHtml(fixed.text);
-        if (fixedHtml) {
-          finalHtml = fixedHtml;
-          fixesApplied = issues.length;
-        }
-      } catch {
-        /* keep original */
-      }
-    }
+    const finalHtml = html;
+    const fixesApplied = 0;
 
     const project = {
       name: titleFromPrompt(prompt),

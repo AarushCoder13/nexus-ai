@@ -9,10 +9,11 @@ import { PROVIDERS } from "./types";
 export type TeamRequest = { provider: ProviderId; role: AgentRole; key: string };
 
 async function callOpenAI(key: string, prompt: string): Promise<string> {
+  const cleanKey = (key || "").trim();
   const model = PROVIDERS.find((p) => p.id === "openai")?.model || "gpt-4o-mini";
   const res = await fetch("https://api.openai.com/v1/chat/completions", {
     method: "POST",
-    headers: { "Content-Type": "application/json", Authorization: `Bearer ${key}` },
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${cleanKey}` },
     body: JSON.stringify({
       model,
       messages: [{ role: "user", content: prompt }],
@@ -28,12 +29,13 @@ async function callOpenAI(key: string, prompt: string): Promise<string> {
 }
 
 async function callAnthropic(key: string, prompt: string): Promise<string> {
+  const cleanKey = (key || "").trim();
   const model = PROVIDERS.find((p) => p.id === "anthropic")?.model || "claude-3-5-sonnet-latest";
   const res = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      "x-api-key": key,
+      "x-api-key": cleanKey,
       "anthropic-version": "2023-06-01",
     },
     body: JSON.stringify({
@@ -51,37 +53,53 @@ async function callAnthropic(key: string, prompt: string): Promise<string> {
 }
 
 async function callGemini(key: string, prompt: string): Promise<string> {
-  const model = PROVIDERS.find((p) => p.id === "gemini")?.model || "gemini-1.5-flash";
-  const res = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(key)}`,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: {
-          maxOutputTokens: 8192,
+  const cleanKey = (key || "").trim();
+  const models = ["gemini-1.5-flash", "gemini-2.0-flash", "gemini-1.5-pro"];
+  let lastErr: any = null;
+
+  for (const model of models) {
+    try {
+      const res = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(cleanKey)}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: prompt }] }],
+            generationConfig: {
+              maxOutputTokens: 8192,
+            },
+          }),
         },
-      }),
-    },
-  );
-  if (!res.ok) {
-    const err = await res.json().catch(() => null);
-    throw new Error(err?.error?.message || `Gemini error ${res.status}`);
+      );
+      if (!res.ok) {
+        const err = await res.json().catch(() => null);
+        const msg = err?.error?.message || `Gemini error ${res.status}`;
+        lastErr = new Error(msg);
+        if (res.status === 404 || msg.toLowerCase().includes("not found")) continue;
+        throw lastErr;
+      }
+      const data = await res.json();
+      const text = data.candidates?.[0]?.content?.parts?.map((p: { text?: string }) => p.text || "").join("") ?? "";
+      if (!text && data.candidates?.[0]?.finishReason) {
+        throw new Error(`Gemini response: ${data.candidates[0].finishReason}`);
+      }
+      return text;
+    } catch (e: any) {
+      lastErr = e;
+      if (e.message && (e.message.includes("not found") || e.message.includes("404"))) continue;
+      throw e;
+    }
   }
-  const data = await res.json();
-  const text = data.candidates?.[0]?.content?.parts?.map((p: { text?: string }) => p.text || "").join("") ?? "";
-  if (!text && data.candidates?.[0]?.finishReason) {
-    throw new Error(`Gemini response: ${data.candidates[0].finishReason}`);
-  }
-  return text;
+  throw lastErr || new Error("Gemini generation failed.");
 }
 
 async function callGrok(key: string, prompt: string): Promise<string> {
+  const cleanKey = (key || "").trim();
   const model = PROVIDERS.find((p) => p.id === "grok")?.model || "grok-beta";
   const res = await fetch("https://api.x.ai/v1/chat/completions", {
     method: "POST",
-    headers: { "Content-Type": "application/json", Authorization: `Bearer ${key}` },
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${cleanKey}` },
     body: JSON.stringify({
       model,
       messages: [{ role: "user", content: prompt }],
@@ -97,10 +115,11 @@ async function callGrok(key: string, prompt: string): Promise<string> {
 }
 
 async function callMistral(key: string, prompt: string): Promise<string> {
+  const cleanKey = (key || "").trim();
   const model = PROVIDERS.find((p) => p.id === "mistral")?.model || "mistral-large-latest";
   const res = await fetch("https://api.mistral.ai/v1/chat/completions", {
     method: "POST",
-    headers: { "Content-Type": "application/json", Authorization: `Bearer ${key}` },
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${cleanKey}` },
     body: JSON.stringify({
       model,
       messages: [{ role: "user", content: prompt }],
@@ -116,10 +135,11 @@ async function callMistral(key: string, prompt: string): Promise<string> {
 }
 
 async function callDeepSeek(key: string, prompt: string): Promise<string> {
+  const cleanKey = (key || "").trim();
   const model = PROVIDERS.find((p) => p.id === "deepseek")?.model || "deepseek-chat";
   const res = await fetch("https://api.deepseek.com/chat/completions", {
     method: "POST",
-    headers: { "Content-Type": "application/json", Authorization: `Bearer ${key}` },
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${cleanKey}` },
     body: JSON.stringify({
       model,
       messages: [{ role: "user", content: prompt }],
@@ -156,7 +176,7 @@ export async function verifySingleKey(provider: ProviderId, key: string): Promis
   const adapter = ADAPTERS[provider as Exclude<ProviderId, "demo">];
   if (!adapter) return { ok: false, message: `Unknown provider: ${provider}` };
   try {
-    const text = await adapter(key, "Say 'OK' in one word.");
+    const text = await adapter((key || "").trim(), "Say 'OK' in one word.");
     if (text) return { ok: true, message: "Key verified successfully!" };
     return { ok: false, message: "Model returned an empty test response." };
   } catch (err: any) {
@@ -175,16 +195,22 @@ export async function runWithFallback(team: TeamRequest[], prompt: string): Prom
 }> {
   const ordered = [...team].sort((a, b) => roleRank(a.role) - roleRank(b.role));
   const errors: string[] = [];
+  const tried = new Set<string>();
 
   for (const member of ordered) {
     if (member.provider === "demo" || !member.key) continue;
+    const cleanKey = member.key.trim();
+    const cacheKey = `${member.provider}:${cleanKey}`;
+    if (tried.has(cacheKey)) continue; // Don't try the exact same failing key multiple times
+    tried.add(cacheKey);
+
     const adapter = ADAPTERS[member.provider as Exclude<ProviderId, "demo">];
     if (!adapter) continue;
     try {
-      const text = await adapter(member.key, prompt);
+      const text = await adapter(cleanKey, prompt);
       if (text) return { text, provider: member.provider, usedFallback: false };
     } catch (err: any) {
-      const msg = `${member.provider} (${member.role}): ${err?.message || String(err)}`;
+      const msg = `${member.provider}: ${err?.message || String(err)}`;
       errors.push(msg);
       console.error(`[Nexus AI] Provider error: ${msg}`);
     }
